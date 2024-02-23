@@ -1,128 +1,87 @@
-#include <stdio.h>
-#include <stdlib.h> // Added for malloc function
+#include<stdio.h>
+#include<stdlib.h>
+#include"tokenizer.h"
 
-/* Return true (non-zero) if c is a whitespace character
-   ('\t' or ' ').  
-   Zero terminators are not printable (therefore false) */
-int space_char(char c) {
-    return (c == ' ' || c == '\t') && c != '\0'; // Corrected comparison
+// True if c is a whitespace character ('\t', ' ')
+
+int space_char(char c){
+  return (c ==  ' ' || c == '\t') && c != 0;
 }
 
-/* Return true (non-zero) if c is a non-whitespace 
-   character (not tab or space).  
-   Zero terminators are not printable (therefore false) */ 
-int non_space_char(char c) {
-    return (c != ' ' && c != '\t') && c != '\0'; // Corrected logical operator and comparison
+int non_space_char(char c){
+  return c != ' ' && c != '\t' && c != 0;
 }
 
-/* Returns a pointer to the first character of the next 
-   space-separated token in zero-terminated str.  Return a zero pointer if 
-   str does not contain any tokens. */
-char *token_start(char *str) {
-    if (*str == '\0')
-        return NULL; // Changed to NULL
+// Returns a pointer to the 1st char of the next space-separated word in zero-terminated str;
+// Return a null pointer if str doesn't contain any words.
+char *word_start(char *word){
+  if(*word == '\0'){
+    return 0;
+  }
+  while(space_char(*word)){
+    word++;
+  }
+  if(*word == '\0'){
+    return 0;
+  }
+  return word;
+}
 
-    // Advances the pointer to the first non-space character
-    while (space_char(*str)) {
-        str++;
+// Returns a pointer terminator char following *word
+char *word_terminator(char *word){
+  while(non_space_char(*word)){
+      word++;
+  }
+  return word;
+}
+// Counts the number of words in the string
+int count_words(char *str){
+  int count = 0;
+  while(*str != '\0'){
+    str = word_start(str);
+    if(str == 0){
+      return count;
     }
-    return str;
+    str = word_terminator(str);
+    count++;
+  }
+  return count;
 }
-
-char *token_terminator(char *token) {
-    // Advances the pointer to the end of the word
-    while (non_space_char(*token)) {
-        if (*token == '\n') {
-            // do nothing
-        }
-        token++;
-    }
-    return token;
-}
-
-/* Counts the number of tokens in the string argument. */
-int count_tokens(char *str) {
-    int count = 0;
-    while (*str != '\0') {
-        if (non_space_char(*str)) {
-            count++;
-            str = token_terminator(str);
-        } else {
-            str++;
-        }
-    }
-    return count;
-}
-
-/* Returns a freshly allocated new zero-terminated string 
-   containing <len> chars from <inStr> */
-char *copy_str(char *inStr, short len) {
-    char *newstr = malloc(sizeof(char) * (len + 1));
-    char *newstrslider = newstr;
-
-    while (non_space_char(*inStr) && len > 0) { // Added len check
-        *newstrslider = *inStr;
-        inStr++;
-        newstrslider++;
-        len--; // Decrease len
-    }
-
-    // terminate with zero
-    *newstrslider = '\0';
-
-    // return pointer
-    return newstr;
-}
-char **tokenize(char *str) {
-    // Count the number of tokens
-    int num_tokens = count_tokens(str);
-
-    // Allocate memory for token pointers
-    char **tokens = malloc(sizeof(char *) * (num_tokens + 1)); // +1 for NULL terminator
-    if (tokens == NULL) {
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(EXIT_FAILURE);
-    }
-
-    int token_index = 0;
-    while (*str != '\0') {
-        str = token_start(str); // Move to the start of the next token
-        if (*str != '\0') {
-            char *terminator = token_terminator(str); // Find the end of the token
-            int token_length = terminator - str; // Calculate the length of the token
-
-            // Allocate memory for the token and copy the characters
-            tokens[token_index] = copy_str(str, token_length);
-            token_index++;
-
-            str = terminator; // Move to the next character after the token
-        }
-    }
-
-    tokens[token_index] = NULL; // Add NULL terminator to the token array
-    return tokens;
-}
-/* Prints all tokens. */
-void print_tokens(char **tokens) {
+char *copy_str(char *inStr, short len){
+  char *copiedStr = malloc((len + 1) * sizeof(char));
   int i;
-  for (i = 0; tokens[i] != 0; i++) {
-    if (tokens[i] == NULL) {
-      return;
-    }
-    printf("\nTokens[%d] : %s\n", i, tokens[i]);
+  for(i = 0; i < len; i++){
+    copiedStr[i] = inStr[i];
+  }
+  copiedStr[i] = '\0';
+  return copiedStr;
+}
+char **tokenize(char *str){
+  int word_length = count_words(str);
+  char **words = malloc((word_length + 1) * sizeof(char*));
+  int i = 0;
+  for(i = 0; i<word_length; i++){
+    char* start = word_start(str);
+    str = word_terminator(start);
+    words[i] = copy_str(start, str - start);
+  }
+  words[i] = NULL;
+  return words;
+}
+// Prints all tokens
+void print_tokens(char **tokens){
+  int i;
+  for(i = 0; tokens[i] != 0; i++){
+    printf("\ntokens[%d] : %s\n", i, tokens[i]);
   }
 }
-
-/* Frees all tokens and the vector containing them. */
+// Frees all tokens
 void free_tokens(char **tokens){
-  for (int i = 0;; i++) {
-    if (tokens[i] == NULL) {  // break at the end of array
-      return;
-    }
-    free(tokens[i]);
-    tokens[i] = NULL;  // nullify pointer after freeing
+  char**temp=tokens;
+  while(*temp!= NULL){
+    free(*temp);
+    temp++;
   }
-
   free(tokens);
-  tokens = NULL;  // nullify tokens itself
 }
+    
