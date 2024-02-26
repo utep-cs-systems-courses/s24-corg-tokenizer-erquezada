@@ -1,73 +1,58 @@
-#include "tokenizer.h"
-#include "history.h"
-#include <stdlib.h>
-#include <stdio.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include"history.h"
+#include"tokenizer.h"
 
-// Initialize the history list and return a pointer to it
-List *init_history()
-{
-  // Create a pointer to the history list
-  List *history_list;
-  // Initialize the pointer to NULL
-  history_list = NULL;
-  // Allocate memory for the history list using malloc()
-  history_list = malloc(sizeof(List));
-  // Return a pointer to the initialized history list
-  return history_list;
+List *init_history(){
+  List *history = malloc(sizeof(List));
+  if (history == NULL) {
+    fprintf(stderr, "Memory allocation failed\n");
+    exit(EXIT_FAILURE);
+  }
+  history->root = NULL;
+  return history;
 }
 
-// Add a new string to the history list
-void add_history(List *list, char *string)
-{
-  // Allocate memory for a new item in the history list
-  Item *new_item = (Item*) malloc(sizeof(Item));
-  // Find the length of the new string
-  int string_length = 0;
-  while(string[string_length] != '\0'){
-    string_length++;
+void add_history(List *list, char *str){
+  Item *new = (Item*)malloc(sizeof(Item));
+  if (new == NULL) {
+    fprintf(stderr, "Memory allocation failed\n");
+    exit(EXIT_FAILURE);
   }
-  // Copy the new string to the new item in the history list
-  new_item->str = copy_str(string, string_length);
-
-  // If the history list is empty, add the new item as the root
+  new->next = NULL;
+  new->str = strdup(str); // You can use strdup to simplify string copying
+  
   if(list->root == NULL){
-    list->root=new_item;
-    new_item->id=1;
-  }
-  // Otherwise, add the new item to the end of the list
-  else {
-    Item *temp_item = list->root;
-    while(temp_item->next != NULL){
-      new_item->id += 1;
-      temp_item = temp_item->next;
+    list->root = new;
+    new->id = 1;
+  } else {
+    Item *temp = list->root;
+    new->id = 0;
+    while(temp->next != NULL){
+      new->id += 1;
+      temp = temp->next;
     }
     temp->next = new;
     new->id += 1;  
   }
 }
 
-// Get a string from the history list based on its ID
-char *get_history(List *list, int id)
-{
-  Item * curr_item = list->root;
-  while(curr_item != 0) {
-    // If the current item in the history list has the desired ID, return its string
-    if(curr_item->id == id){
-      return curr_item->str;
+char *get_history(List *list, int id){
+  Item *curr = list->root;
+  while(curr != NULL){
+    if(curr->id == id){
+      return curr->str;
     }
     curr = curr->next;
   }
-  // If the desired ID is not found in the history list, return "Does not exist"
-  return "Does not exist";
+  return NULL; // Returning NULL indicates that the history item was not found
 }
 
-// Print all strings in the history list, along with their IDs
-void print_history(List *list)
-{
-  Item *curr_item = list->root;
+void print_history(List *list){
+  Item *curr = list->root;
   int i = 1;
-  // If the history list is empty, print a message and return
-  if(list == NULL){
+  if(list == NULL || list->root == NULL){
     printf("List does not have items\n");
     return;
   }
@@ -79,15 +64,14 @@ void print_history(List *list)
   }
 }
 
-// Free all memory associated with the history list
-void free_history(List *list)
-{
-  Item *curr_item;
+void free_history(List *list){
+  if (list == NULL) return;
+  Item *curr;
   while(list->root != NULL){
     curr = list->root;
     list->root = list->root->next;
-    free(curr_item);
+    free(curr->str); // Freeing the string
+    free(curr);      // Freeing the item
   }
-  // Free the memory associated with the history list itself
-  free(list);
+  free(list); // Freeing the list itself
 }
