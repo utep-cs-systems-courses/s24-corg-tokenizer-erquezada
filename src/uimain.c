@@ -1,7 +1,9 @@
-#include<stdlib.h>
-#include<string.h>
-#include"tokenizer.h"
-#include"history.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "tokenizer.h"
+#include "history.h"
+
 #define MAX 400 
 
 int main(){
@@ -21,7 +23,7 @@ int main(){
     
     tokens = tokenize(userInput);
     print_tokens(tokens);
-    add_history( history, userInput);
+    add_history(history, userInput);
 
     if(userInput[0] == 'q'){
       break;
@@ -39,7 +41,7 @@ int main(){
         free_tokens(tokens); // Memory freed here
       }else{
         printf("Invalid history index\n");
-        free_tokens(tokens); // Free tokens even if h is NULL
+        // No need to free tokens here, as it's not allocated
       }
     }
 
