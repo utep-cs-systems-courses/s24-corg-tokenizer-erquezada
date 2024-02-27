@@ -34,8 +34,8 @@ char *word_terminator(char *word){
   }
   return word;
 }
-// Counts the number of words in the string
-int count_words(char *str){
+// Counts the number of strings in the string
+int count_tokens(char *str){
   int count = 0;
   while(*str != '\0'){
     str = word_start(str);
